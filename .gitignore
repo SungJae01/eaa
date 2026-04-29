@@ -1,0 +1,139 @@
+# ============================================
+# Git 저장소 용량 최적화 .gitignore
+# 총 용량: 약 30GB → 약 200MB로 축소
+# ============================================
+/node_modules/
+src/new_project/node_modules/
+/dist/
+src/new_project/dist/
+
+src/webapp/config.php
+# --- [Docker 관련] ---
+docker-compose.yml
+db_data/
+*.log
+
+# --- [민감 정보] ---
+webapp/config.php
+db_conn.inc
+db_dump/*.sql
+.env
+.env.local
+.env.*.local
+.htaccess
+
+# --- [🔥 대용량 업로드 폴더 (25GB+)] ---
+# 사용자가 업로드한 파일들 - 개발에 불필요
+upload_dir/          # 12GB (공모전 작품, 이미지)
+/upload_dir/
+upload_dir/**
+upfile/              # 6.3GB (동영상, PDF)
+data/                # 5.4GB (이미지 아카이브)
+upimg/               # 2GB (구버전 업로드)
+upimg02/             # 212MB (추가 업로드)
+
+# --- [백업/구버전 폴더] ---
+_pc/                 # 3.3GB (구버전 백업)
+2009_new/            # 108MB (2009년 버전)
+nbe/                 # 485MB (구버전)
+
+# --- [외부 라이브러리/도구] ---
+ecolinkdb/           # 44MB (phpMyAdmin)
+vendor/              # 11MB (Composer 패키지)
+smarteditor2/        # 10MB (네이버 에디터)
+
+# --- [이미지 및 미디어 파일] ---
+*.jpg
+*.jpeg
+*.JPG
+*.JPEG
+*.png
+*.PNG
+*.gif
+*.GIF
+*.bmp
+*.webp
+*.svg
+*.ico
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.HEIC
+
+# --- [문서 파일] ---
+*.pdf
+*.PDF
+*.hwp
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+
+# --- [압축 파일] ---
+*.zip
+*.rar
+*.tar
+*.gz
+*.7z
+
+# --- [캐시 및 임시 파일] ---
+webapp/smarty/cache/
+webapp/smarty/compile/
+*.cache
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+로그 및 캐시 (Logs & Cache)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.vite
+
+# --- [로그 파일] ---
+*.log
+attack_log.txt
+debug_api.log
+webapp/lib/sql_block_log.txt
+
+# --- [IDE 설정] ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.sublime-*
+
+# --- [백업 파일] ---
+*_bak_*
+*(bak_*)
+*_backup_*
+*.backup
+*_20[0-9][0-9]*
+
+# --- [기타 불필요한 폴더] ---
+새폴더/
+xyiznwsk/
+.well-known/
+.kiro/
+
+# ============================================
+# 예외 처리: 꼭 필요한 파일들
+# ============================================
+
+# 로고나 UI 필수 이미지가 있다면 아래처럼 추가
+# !src/img/logo.png
+# !src/img/favicon.ico
+
+# 샘플 이미지가 필요하다면
+# !src/img/sample/
+
+# 개발용 설정 파일 (로컬용)
+!webapp/config.php.example
+!db_conn.inc.example
