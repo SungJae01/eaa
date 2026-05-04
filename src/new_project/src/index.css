@@ -1,0 +1,30 @@
+/* src/index.css */
+@import "tailwindcss";/* 부드러운 스크롤 이동 */
+
+html {
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory; /* 세로 방향 스크롤 스냅 활성화 */
+}
+
+/* 스크롤바 숨기기 (선택 사항) */
+body::-webkit-scrollbar {
+    display: none;
+}
+body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overflow-y: hidden; /* 스크롤바 공간 확보 */
+}
+
+section {
+  scroll-snap-align: start; /* 섹션 시작 부분에 스냅 */
+}
+
+img {
+    /* 이미지 클릭 방지 */
+    pointer-events: none;
+    /* 이미지 드래그 방지 */
+    -webkit-user-drag: none;
+    /* 이미지 선택 방지 */
+    -webkit-touch-callout: none;
+}

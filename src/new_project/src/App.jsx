@@ -1,146 +1,140 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
-const sectionVariants = {
-    initial: { opacity: 0, y: 50 },
-    animate: { 
-        opacity: 1,      
-        y: 0,      
-        transition: { duration: 0.8, ease: "easeOut" }       
-    }
-};
+// 섹션 및 페이지 임포트
+import Home from './components/sections/Home';
+import About from './components/sections/About';
+import Activity from './components/sections/Activity';
+import Contact from './components/sections/Contact';
+import Sitemap from './pages/Sitemap'; 
+import Notice from './pages/Notice';
+import ActivityDetail from './pages/ActivityDetail';
 
-const Section = ({ id, children, bgColor, title, isLast }) => (
-    <motion.section id={id} className={`w-full flex flex-col items-center ${bgColor} ${isLast ? 'min-h-screen pt-32' : 'h-screen justify-center px-4'}`}>
-        
-        {/* 콘텐츠 영역: 가로 제한(max-w-7xl) 있음 */}
-        <div className="max-w-7xl mx-auto text-center px-4 flex-grow flex flex-col justify-center">
-            <motion.h2 className="text-4xl md:text-6xl font-black mb-8">{title}</motion.h2>
-            <motion.div>{children}</motion.div>
-        </div>
-
-        {/* 푸터 영역: 가로 제한 없음! (w-full) */}
-        {isLast && <Footer />}
-        
-    </motion.section>
-);
-
-function App() {
+function MainPage() {
     const [activeIndex, setActiveIndex] = useState(0);
+    const [vh, setVh] = useState(window.innerHeight);
     const sectionIds = ['home', 'about', 'activity', 'contact'];
     const isScrolling = useRef(false);
+    
+    const location = useLocation();
+    const navigate = useNavigate();
 
-    // 섹션 인덱스를 기반으로 ID 문자열 반환
-    const activeSectionId = sectionIds[activeIndex];
-
+    // 섹션 이동 함수
     const moveSection = (index) => {
         if (index < 0 || index >= sectionIds.length || isScrolling.current) return;
         
         isScrolling.current = true;
         setActiveIndex(index);
-        
-        // 1.2초(duration) 후에 스크롤 잠금 해제
+
+        // 주소창의 Hash 업데이트 (페이지 튕김 방지를 위해 pushState 사용)
+        const targetId = sectionIds[index];
+        window.history.pushState(null, null, `/#${targetId}`);
+
         setTimeout(() => {
             isScrolling.current = false;
         }, 1200);
     };
 
+    // 🚀 [추가] 외부 페이지에서 해시를 들고 들어올 때 감지하는 로직
     useEffect(() => {
-        const handleWheel = (e) => {
-            // 마지막 섹션(Contact)에 도달했을 때
-            if (activeIndex === sectionIds.length - 1) {
-                // 아래로 스크롤할 때는 이벤트를 막지 않아 푸터가 보이게 함
-                if (e.deltaY > 0) return; 
-                
-                // 위로 스크롤할 때, 브라우저 스크롤 위치가 맨 위일 때만 이전 섹션으로 이동
-                if (e.deltaY < 0 && window.scrollY <= 0) {
-                    e.preventDefault();
-                    moveSection(activeIndex - 1);
-                }
-                return;
+        const hash = location.hash.replace('#', '');
+        if (hash) {
+            const index = sectionIds.indexOf(hash);
+            if (index !== -1 && index !== activeIndex) {
+                // 렌더링 타이밍을 고려해 약간의 지연 후 이동
+                setTimeout(() => moveSection(index), 100);
             }
+        }
+    }, [location]);
 
-            // 그 외 섹션에서는 기본 스크롤을 막고 섹션 단위로 이동
-            e.preventDefault();
+    useEffect(() => {
+        const handleResize = () => setVh(window.innerHeight);
+        
+        const handleWheel = (e) => {
             if (isScrolling.current) return;
+            
+            // 마지막 섹션(Contact)에서 아래로 스크롤할 때는 스크롤이 Footer까지 내려가도록 허용
+            if (activeIndex === sectionIds.length - 1 && e.deltaY > 0) return;
 
+            e.preventDefault();
             if (e.deltaY > 0) moveSection(activeIndex + 1);
             else if (e.deltaY < 0) moveSection(activeIndex - 1);
         };
 
-        if (history.scrollRestoration) {
-            history.scrollRestoration = 'manual';
-        }
-        window.scrollTo(0, 0);
-        // passive: false를 설정해야 e.preventDefault()가 작동합니다.
+        window.addEventListener('resize', handleResize);
         window.addEventListener('wheel', handleWheel, { passive: false });
-        return () => window.removeEventListener('wheel', handleWheel);
+        
+        return () => {
+            window.removeEventListener('wheel', handleWheel);
+            window.removeEventListener('resize', handleResize);
+        };
     }, [activeIndex]);
 
     return (
-        // min-h-screen을 주어 전체 높이를 확보합니다.
-        <div className="bg-gray-50 text-gray-900 font-sans">
+        <div className="relative">
             <Header 
-                activeSection={activeSectionId} 
-                onMenuClick={moveSection}
+                activeSection={sectionIds[activeIndex]} 
+                onMenuClick={moveSection} 
             />
-
+            
             <motion.div
-                animate={{ y: -(activeIndex * window.innerHeight) }}
+                animate={{ y: -(activeIndex * vh) }}
                 transition={{ type: "tween", ease: "easeInOut", duration: 0.8 }}
                 className="w-full"
             >
-                <Section id="home" title="환경을 위한 실천" bgColor="bg-white">
-                    <p className="text-xl text-gray-600 mb-10">버려지는 폐화분 관리, 환경실천연합회가 함께합니다.</p>
-                    <button className="bg-green-600 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-green-700 transition-all shadow-xl cursor-pointer">
-                        프로젝트 시작하기
-                    </button>
-                </Section>
-
-                <Section id="about" title="사업 소개" bgColor="bg-gray-50">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-                                <div className="w-12 h-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-4 font-bold">0{i}</div>
-                                <h3 className="text-xl font-bold mb-2">지속 가능한 관리</h3>
-                                <p className="text-gray-500">환경 데이터를 수집하고 분석하여 최적의 솔루션을 제공합니다.</p>
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-
-                <Section id="activity" title="활동 소식" bgColor="bg-green-50">
-                    <div className="flex flex-wrap justify-center gap-6">
-                        <div className="w-full md:w-96 h-64 bg-white rounded-3xl shadow-lg flex items-center justify-center text-gray-300">[활동 이미지]</div>
-                        <div className="w-full md:w-96 h-64 bg-white rounded-3xl shadow-lg flex items-center justify-center text-gray-300">[활동 이미지]</div>
-                    </div>
-                </Section>
-
-                {/* 마지막 섹션: 이 섹션 안에 Footer를 넣어 함께 움직이게 합니다. */}
-                <Section id="contact" title="함께 참여하세요" bgColor="bg-gray-900 text-white" isLast={true}>
-                    <p className="text-gray-400 mb-10 text-lg">지구를 지키는 작은 실천, 지금 바로 시작할 수 있습니다.</p>
-                    <div className="flex gap-4 justify-center mb-32 text-gray-900">
-                        <input type="email" placeholder="이메일 주소 입력" className="px-6 py-4 rounded-xl w-64 focus:outline-none" />
-                        <button className="bg-green-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-green-600 cursor-pointer">구독하기</button>
-                    </div>
-                </Section>
+                <Home activeIndex={activeIndex} />
+                <About />
+                <Activity />
+                <Contact />
+                <Footer />
             </motion.div>
 
-            {/* 인디케이터 */}
+            {/* 페이지 네비게이션 인디케이터 */}
             <nav className="fixed right-8 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-50">
                 {sectionIds.map((id, index) => (
                     <button
                         key={id}
                         onClick={() => moveSection(index)}
-                        className={`w-3 h-3 rounded-full transition-all duration-300 border-2 cursor-pointer border-white shadow-sm ${
-                            activeIndex === index ? 'bg-green-500 scale-150' : 'bg-gray-300'
+                        className={`w-3 h-3 rounded-full transition-all duration-300 border-2 border-white shadow-md ${
+                            activeIndex === index ? 'bg-green-500 scale-150' : 'bg-gray-400 opacity-50'
                         }`}
                         title={id}
                     />
                 ))}
             </nav>
+        </div>
+    );
+}
+
+function App() {
+    useEffect(() => {
+        // 이미지 우클릭 방지 전역 설정
+        const handleImageContextMenu = (e) => {
+            if (e.target.tagName === 'IMG') e.preventDefault();
+        };
+        document.addEventListener('contextmenu', handleImageContextMenu);
+        
+        // 새로고침 시 스크롤 위치 초기화
+        if (window.history.scrollRestoration) {
+            window.history.scrollRestoration = 'manual';
+        }
+
+        return () => document.removeEventListener('contextmenu', handleImageContextMenu);
+    }, []);
+
+    return (
+        <div className="bg-gray-50 text-gray-900 font-sans overflow-hidden">
+            <Routes>
+                {/* 메인 원페이지 스크롤 경로 */}
+                <Route path="/" element={<MainPage />} />
+                {/* 추가 페이지 경로 */}
+                <Route path="/sitemap" element={<Sitemap />} />
+                <Route path="/notice" element={<Notice />} />
+                <Route path="/activity_detail" element={<ActivityDetail />} />
+            </Routes>
         </div>
     );
 }
