@@ -31,7 +31,7 @@ function MainPage() {
 
         // 주소창의 Hash 업데이트 (페이지 튕김 방지를 위해 pushState 사용)
         const targetId = sectionIds[index];
-        window.history.pushState(null, null, `/#${targetId}`);
+        window.history.pushState(null, null, `#${targetId}`);
 
         setTimeout(() => {
             isScrolling.current = false;

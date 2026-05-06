@@ -1,11 +1,34 @@
 // 메인페이지 '홈' 섹션 컴포넌트
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Section from '../Section';
 import CountUp from '../CountUp';
 import mainBanner from '../../assets/main_banner.png';
 
 const Home = ({ activeIndex }) => {
+    // 🚀 DB에서 불러온 숫자를 저장할 상태(State)
+    const [counts, setCounts] = useState({
+        collected: 2500, // 초기값 (로딩 전 표시)
+        reborn: 2000
+    });
+
+    // 🚀 컴포넌트 마운트 시 API 호출
+    useEffect(() => {
+        const fetchCounts = async () => {
+            try {
+                // 도커 환경의 서버 주소 (프로젝트 경로에 맞춰 수정하세요)
+                const response = await fetch('/new_project/api/get_count.php');
+                if (response.ok) {
+                    const data = await response.json();
+                    setCounts(data);
+                }
+            } catch (error) {
+                console.error("데이터를 불러오는데 실패했습니다:", error);
+            }
+        };
+
+        fetchCounts();
+    }, []);
+
     return (
         <Section id="home" title="" bgColor="bg-slate-50" className="p-0 flex flex-col justify-center">
             <div className="relative w-screen h-[70vh] left-1/2 right-1/2 -ml-[50vw] +mr-[50vw] mt-15 overflow-hidden shadow-lg">
@@ -15,12 +38,15 @@ const Home = ({ activeIndex }) => {
                     className="w-full h-full object-cover shadow-2xl" 
                 />
                 
+                {/* 🚀 데이터 연동 영역 */}
                 <div className="absolute left-[81%] top-[85%] -translate-x-1/2 -translate-y-1/2 flex gap-8 md:gap-16 z-20">
+                    {/* Collected 섹션 */}
                     <div className="text-center group">
                         <p className="text-white/70 text-xs md:text-sm font-bold mb-2 uppercase">Collected</p>
                         <div className="relative">
                             <h4 className="text-4xl md:text-6xl font-black text-white tabular-nums drop-shadow-lg">
-                                <CountUp to={2500} active={activeIndex === 0} />
+                                {/* counts.collected 값을 적용 */}
+                                <CountUp to={counts.collected} active={activeIndex === 0} />
                                 <span className="text-xl md:text-2xl ml-1 text-green-400">+</span>
                             </h4>
                             <div className="w-full h-1 bg-green-500/50 mt-2 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
@@ -28,11 +54,13 @@ const Home = ({ activeIndex }) => {
                         <p className="text-white/90 text-sm md:text-base font-bold mt-2">회수된 폐화분</p>
                     </div>
 
+                    {/* Reborn 섹션 */}
                     <div className="text-center group">
                         <p className="text-white/70 text-xs md:text-sm font-bold mb-2 uppercase">Reborn</p>
                         <div className="relative">
                             <h4 className="text-4xl md:text-6xl font-black text-white tabular-nums drop-shadow-lg">
-                                <CountUp to={2000} active={activeIndex === 0} />
+                                {/* counts.reborn 값을 적용 */}
+                                <CountUp to={counts.reborn} active={activeIndex === 0} />
                                 <span className="text-xl md:text-2xl ml-1 text-blue-400">+</span>
                             </h4>
                             <div className="w-full h-1 bg-blue-500/50 mt-2 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>

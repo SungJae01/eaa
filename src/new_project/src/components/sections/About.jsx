@@ -1,42 +1,81 @@
 // 메인페이지 '사업 소개' 섹션 컴포넌트
-
-import React from 'react';
+import React, { useState, useEffect } from 'react'; // 🚀 useState, useEffect 추가
 import Section from '../Section';
 import collect from '../../assets/collect.png';
 import planting from '../../assets/planting.png';
 import donate from '../../assets/donate.png';
 
 const About = () => {
+    // 🚀 API 데이터를 저장할 상태(State) 관리
+    const [data, setData] = useState({
+        step1: { upcoming: [], completed: [] },
+        step2: { upcoming: [], completed: [] },
+        step3: { upcoming: [], completed: [] }
+    });
+
+    // 🚀 컴포넌트 마운트 시 API 호출
+    useEffect(() => {
+        fetch('/new_project/api/get_activities.php')
+            .then(res => res.json())
+            .then(json => {
+                if (json && json.step1) {
+                    setData(json);
+                }
+            })
+            .catch(err => console.error("활동 내역 로드 실패:", err));
+    }, []);
+
+    // 🚀 리스트 렌더링 헬퍼 함수 (디자인 유지)
+    const renderItems = (items, type) => {
+        if (items.length === 0) {
+            return (
+                <div className="flex items-center gap-3 bg-green-50/50 px-3 py-2 rounded-xl border border-green-100/50">
+                    <div className={`w-1.5 h-1.5 rounded-full ${type === 'upcoming' ? 'bg-green-500' : 'bg-gray-500'}`} />
+                    <span className="text-xs font-bold text-gray-400">예정된 활동이 없습니다.</span>
+                </div>
+            );
+        }
+
+        return items.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-3 bg-green-50/50 px-3 py-2 rounded-xl border border-green-100/50">
+                <div className={`w-1.5 h-1.5 rounded-full ${type === 'upcoming' ? (type.includes('step2') ? 'bg-blue-500' : (type.includes('step3') ? 'bg-orange-500' : 'bg-green-500')) : 'bg-gray-500'} shadow-[0_0_8px_rgba(34,197,94,0.4)]`} 
+                     style={type === 'upcoming' ? {} : {boxShadow: 'none'}} />
+                <span className="text-xs font-bold text-gray-700">{item}</span>
+            </div>
+        ));
+    };
+
     return (
-        <Section id="about" title="" bgColor="bg-gray-50">
+        <Section id="about" title bgColor="bg-gray-50">
             <div className="max-w-7xl mx-auto mt-12 px-4">
                 <div className="max-w-4xl mx-auto my-3 text-center px-4 relative">
-                    {/* 배경 장식 요소 (선택 사항) */}
+                    
                     <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-10 select-none pointer-events-none">
                         <span className="text-8xl font-black text-green-600 tracking-widest uppercase">Circulation</span>
                     </div>
 
-                    {/* 메인 멘트 */}
+                    
                     <h2 className="relative z-10 text-2xl md:text-4xl font-bold text-gray-800 leading-tight mb-4">
-                        당신이 놓아준 <span className="text-green-600 underline underline-offset-8 decoration-green-200">화분 한 자리</span>, <br className="md:hidden" />
+                        당신이 놓아준 <span className="text-green-600 underline underline-offset-8 decoration-green-200">화분 한 자리</span>, <br/>
                         우리 이웃의 <span className="text-green-700">작은 숲</span>이 됩니다.
                     </h2>
 
-                    {/* 서브 설명 문구 (추가 시 더욱 풍성해집니다) */}
+                    
                     <p className="text-sm md:text-lg text-gray-500 font-medium tracking-tight">
                         매립될 위기의 폐화분을 수거하여 전문가의 손길로 다시 꽃피우는 <br className="hidden md:block" />
                         환경실천연합회의 <strong>자원순환 프로젝트</strong>를 소개합니다.
                     </p>
                     
-                    {/* 구분선 */}
+                    
                     <div className="mt-8 flex justify-center gap-1">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-200"></div>
                         <div className="w-12 h-1.5 rounded-full bg-green-500"></div>
                         <div className="w-1.5 h-1.5 rounded-full bg-green-200"></div>
                     </div>
                 </div>
+
                 <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4">
-                    {/* STEP 01 */}
+                    
                     <div className="flex-1 bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col min-h-[520px] z-10 transition-transform hover:scale-[1.02]">
                         <div className="h-48 bg-gray-200 relative">
                             <img src={collect} alt="폐화분 수거" className="w-full h-full object-cover" onContextMenu={(e) => e.preventDefault()} />
@@ -48,29 +87,19 @@ const About = () => {
                             <div className="mt-auto">
                                 <p className="text-[11px] font-black text-green-600 mb-3 uppercase tracking-[0.2em] text-left">Upcoming</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {['--시 --동 주거단지 일대', '--시 --읍 아파트 단지'].map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 bg-green-50/50 px-3 py-2 rounded-xl border border-green-100/50">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                                            <span className="text-xs font-bold text-gray-700">{item}</span>
-                                        </div>
-                                    ))}
+                                    {renderItems(data.step1.upcoming, 'upcoming')}
                                 </div>
                                 <p className="text-[11px] font-black text-gray-500 my-3 uppercase tracking-[0.2em] text-left">Completed</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {['--시 --동 주거단지 일대', '--시 --읍 아파트 단지'].map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 bg-green-50/50 px-3 py-2 rounded-xl border border-green-100/50">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-gray-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                                            <span className="text-xs font-bold text-gray-700">{item}</span>
-                                        </div>
-                                    ))}
+                                    {renderItems(data.step1.completed, 'completed')}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <Arrow />
+                    <Arrow/>
 
-                    {/* STEP 02 */}
+                    
                     <div className="flex-1 bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col min-h-[520px] z-10 transition-transform hover:scale-[1.02]">
                         <div className="h-48 bg-gray-200 relative">
                             <img src={planting} alt="보완 식재" className="w-full h-full object-cover transform rotate-180" />
@@ -82,29 +111,19 @@ const About = () => {
                             <div className="mt-auto">
                                 <p className="text-[11px] font-black text-blue-600 mb-3 uppercase tracking-[0.2em] text-left">Upcoming</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {['환경실천연합회 활동가 그룹', '지역 원예 전문가 자문단'].map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
-                                            <span className="text-xs font-bold text-gray-700">{item}</span>
-                                        </div>
-                                    ))}
+                                    {renderItems(data.step2.upcoming, 'upcoming')}
                                 </div>
                                 <p className="text-[11px] font-black text-gray-500 my-3 uppercase tracking-[0.2em] text-left">Completed</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {['환경실천연합회 활동가 그룹', '지역 원예 전문가 자문단'].map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 bg-blue-50/50 px-3 py-2 rounded-xl border border-blue-100/50">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-gray-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
-                                            <span className="text-xs font-bold text-gray-700">{item}</span>
-                                        </div>
-                                    ))}
+                                    {renderItems(data.step2.completed, 'completed')}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <Arrow />
+                    <Arrow/>
 
-                    {/* STEP 03 */}
+                    
                     <div className="flex-1 bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col min-h-[520px] z-10 transition-transform hover:scale-[1.02]">
                         <div className="h-48 bg-gray-200 relative">
                             <img src={donate} alt="사회적 나눔" className="w-full h-full object-cover" onContextMenu={(e) => e.preventDefault()} />
@@ -116,21 +135,11 @@ const About = () => {
                             <div className="mt-auto">
                                 <p className="text-[11px] font-black text-orange-600 mb-3 uppercase tracking-[0.2em] text-left">Upcoming</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {['시립 양로원 및 요양 센터 15곳', '지역 아동 복지 센터 10곳'].map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 bg-orange-50/50 px-3 py-2 rounded-xl border border-orange-100/50">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]" />
-                                            <span className="text-xs font-bold text-gray-700">{item}</span>
-                                        </div>
-                                    ))}
+                                    {renderItems(data.step3.upcoming, 'upcoming')}
                                 </div>
                                 <p className="text-[11px] font-black text-gray-500 my-3 uppercase tracking-[0.2em] text-left">Completed</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {['시립 양로원 및 요양 센터 15곳', '지역 아동 복지 센터 10곳'].map((item, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 bg-orange-50/50 px-3 py-2 rounded-xl border border-orange-100/50">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-gray-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]" />
-                                            <span className="text-xs font-bold text-gray-700">{item}</span>
-                                        </div>
-                                    ))}
+                                    {renderItems(data.step3.completed, 'completed')}
                                 </div>
                             </div>
                         </div>

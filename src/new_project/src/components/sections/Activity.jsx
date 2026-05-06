@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 🚀 useEffect 추가
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 import Section from '../Section'; 
-import mainBanner from '../../assets/main_banner.png';
+// import mainBanner from '../../assets/main_banner.png'; // 🚀 이제 서버 이미지를 사용합니다.
 
 const Activity = () => {
     const [selectedId, setSelectedId] = useState(null);
+    const [activities, setActivities] = useState([]); // 🚀 DB 데이터를 담을 상태
 
-    // 끊김 없는 부드러운 전환을 위해 stiffness와 damping을 미세 조정합니다.
+    // 🚀 데이터 불러오기
+    useEffect(() => {
+        fetch('/new_project/api/get_board.php')
+            .then(res => res.json())
+            .then(data => setActivities(data))
+            .catch(err => console.error(err));
+    }, []);
+
     const transitionConfig = {
         type: "spring",
         stiffness: 200,
@@ -21,45 +29,6 @@ const Activity = () => {
         "보완 식재": "bg-blue-100 text-blue-700 border-blue-200",
         "사회적 나눔": "bg-orange-100 text-orange-700 border-orange-200"
     };
-
-    const activities = [
-        { 
-            id: 1, 
-            tag: "화분 마당",
-            title: "오산시 궐동 폐화분 수거 캠페인", 
-            date: "2026.04.12", 
-            summary: "지역 주민들과 함께하는 자원순환의 첫걸음",
-            content: "지역 주민들의 적극적인 참여로 150개의 폐화분을 수거했습니다. 수거된 화분은 세척 과정을 거쳐 보완 식재 단계로 이동합니다.", 
-            image: mainBanner 
-        },
-        { 
-            id: 2, 
-            tag: "보완 식재",
-            title: "수원대학교 자원봉사자 식재 교육", 
-            date: "2026.04.15", 
-            summary: "청년들의 손길로 다시 피어나는 녹색 생명",
-            content: "환경실천연합회 전문가와 함께 수원대학교 학생들이 참여하여 올바른 분갈이 및 보완 식재 기술을 습득했습니다.", 
-            image: mainBanner
-        },
-        { 
-            id: 3, 
-            tag: "사회적 나눔",
-            title: "봉담읍 아파트 단지 화분 교환 행사", 
-            date: "2026.04.20", 
-            summary: "이웃과 나누는 깨끗한 공기, 탄소저감 화분 나눔",
-            content: "재사용 화분을 시민들에게 나누어주며 자원순환의 중요성을 알렸습니다. 약 200가구가 참여하여 큰 호응을 얻었습니다.", 
-            image: mainBanner
-        },
-        { 
-            id: 4, 
-            tag: "사회적 나눔",
-            title: "사회복지시설 '나눔 숲' 조성 완료", 
-            date: "2026.04.25", 
-            summary: "어르신들의 일상에 싱그러운 활력을 더해드립니다",
-            content: "보완 식재가 완료된 탄소저감 화분들을 시립 양로원에 전달하여 어르신들을 위한 실내 녹색 쉼터를 조성했습니다.", 
-            image: mainBanner
-        },
-    ];
 
     const selectedActivity = activities.find(a => a.id === selectedId);
 
@@ -99,11 +68,10 @@ const Activity = () => {
                                         : 'bg-white border-gray-100 shadow-sm hover:shadow-md'
                                 }`}
                             >
-                                {/* 썸네일 컨테이너: 고정 너비를 유지하여 레이아웃 끊김을 방지합니다. */}
                                 <motion.div 
                                     layout
                                     className="h-full bg-gray-200 overflow-hidden relative shrink-0"
-                                    style={{ width: selectedId ? 0 : '144px' }} // 선택 시 너비를 0으로 부드럽게 축소
+                                    style={{ width: selectedId ? 0 : '144px' }}
                                     transition={transitionConfig}
                                 >
                                     <AnimatePresence mode="wait">
@@ -113,7 +81,8 @@ const Activity = () => {
                                                 animate={{ opacity: 1 }}
                                                 exit={{ opacity: 0 }}
                                                 transition={{ duration: 0.2 }}
-                                                src={item.image} 
+                                                // 🚀 서버의 업로드 폴더 주소를 사용합니다.
+                                                src={`/new_project/uploads/${item.image_path}`} 
                                                 alt="thumbnail" 
                                                 className="w-36 h-full object-cover"
                                                 onContextMenu={(e) => e.preventDefault()}
@@ -122,9 +91,8 @@ const Activity = () => {
                                     </AnimatePresence>
                                 </motion.div>
 
-                                {/* 리스트 텍스트 정보 */}
-                                <div className="flex-1 px-4 flex flex-col justify-center overflow-hidden">
-                                    <motion.h4 layout="position" className={`font-bold text-sm md:text-base mb-1 truncate text-left ${selectedId === item.id ? 'text-white' : 'text-gray-800'}`}>
+                                <div className="flex-1 px-4 flex flex-col justify-center overflow-hidden text-left">
+                                    <motion.h4 layout="position" className={`font-bold text-sm md:text-base mb-1 truncate ${selectedId === item.id ? 'text-white' : 'text-gray-800'}`}>
                                         {item.title}
                                     </motion.h4>
                                     
@@ -133,7 +101,7 @@ const Activity = () => {
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
                                                 exit={{ opacity: 0 }}
-                                                className={`text-xs truncate text-left ml-1 ${selectedId === item.id ? 'text-white' : 'text-gray-500'}`}
+                                                className={`text-xs truncate ml-1 ${selectedId === item.id ? 'text-white' : 'text-gray-500'}`}
                                             >
                                                 {item.summary}
                                             </motion.p>
@@ -143,12 +111,11 @@ const Activity = () => {
                                             {item.tag}
                                         </span>
                                         <span className={`pt-1 text-[10px] font-bold tracking-widest ${selectedId === item.id ? 'text-green-200' : 'text-gray-400'}`}>
-                                            {item.date}
+                                            {item.reg_date.split(' ')[0]} {/* 날짜만 표시 */}
                                         </span>
                                     </motion.div>
                                 </div>
 
-                                {/* 우측 화살표 */}
                                 <AnimatePresence>
                                     {!selectedId && (
                                         <motion.div 
@@ -178,7 +145,7 @@ const Activity = () => {
                             >
                                 <div className="w-full h-53 md:h-53 bg-gray-100 relative overflow-hidden">
                                     <img 
-                                        src={selectedActivity.image} 
+                                        src={`/new_project/uploads/${selectedActivity.image_path}`} 
                                         alt="상세이미지" 
                                         className="w-full h-full object-cover" 
                                         onContextMenu={(e) => e.preventDefault()}
@@ -196,17 +163,17 @@ const Activity = () => {
                                         <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${tagStyles[selectedActivity.tag]}`}>
                                             {selectedActivity.tag}
                                         </span>
-                                        <span className="text-gray-400 text-xs mt-2 font-bold uppercase tracking-widest">{selectedActivity.date} 등록</span>
+                                        <span className="text-gray-400 text-xs mt-2 font-bold uppercase tracking-widest">{selectedActivity.reg_date.split(' ')[0]} 등록</span>
                                     </div>
                                     <h3 className="text-xl md:text-3xl font-black text-gray-800 mb-6 leading-tight break-keep">
                                         {selectedActivity.title}
                                     </h3>
                                     <div className="w-full h-px bg-gray-100 mb-6" />
-                                    <p className="text-gray-500 leading-relaxed text-base md:text-lg break-keep mb-10">
+                                    <p className="text-gray-500 leading-relaxed text-base md:text-lg break-keep mb-10 whitespace-pre-wrap">
                                         {selectedActivity.content}
                                     </p>
                                     <div className="mt-auto pt-6 border-t border-gray-50 flex justify-end">
-                                        <Link to="/activity_detail" className="bg-green-500 text-white py-3.5 px-8 rounded-xl font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-100 flex items-center gap-2 group">
+                                        <Link to={`/activity_detail/${selectedActivity.id}`} className="bg-green-500 text-white py-3.5 px-8 rounded-xl font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-100 flex items-center gap-2 group">
                                             기사 전문 보기
                                             <svg className="group-hover:translate-x-1 transition-transform" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M13 7l5 5-5 5M6 7l5 5-5 5" /></svg>
                                         </Link>
